@@ -17,9 +17,9 @@ import org.w3c.dom.Element;
 
 public class XHTMLImageHandlerDefault implements XHTMLImageHandler {
 	
-	public static Logger log = LoggerFactory.getLogger(XHTMLImageHandlerDefault.class);		
+	public static Logger log = LoggerFactory.getLogger(XHTMLImporter.class);		
 	
-    protected HashMap<String, BinaryPartAbstractImage> imagePartCache = new HashMap<String, BinaryPartAbstractImage>(); 
+    private HashMap<String, BinaryPartAbstractImage> imagePartCache = new HashMap<String, BinaryPartAbstractImage>(); 
 	
 	public void addImage(Docx4jUserAgent docx4jUserAgent, WordprocessingMLPackage wordMLPackage, P p, Element e, Long cx, Long cy) {
 
@@ -121,6 +121,5 @@ public class XHTMLImageHandlerDefault implements XHTMLImageHandler {
 		}
 		
 	}
-	
 
 }
