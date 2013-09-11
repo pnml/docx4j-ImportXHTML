@@ -52,8 +52,7 @@ public class HyperlinkTest {
 	}
 
 	private List<Object> convert(String xhtml) throws Docx4JException {
-        XHTMLImporter XHTMLImporter = new XHTMLImporter(wordMLPackage);		
-		return XHTMLImporter.convert(xhtml, "");
+		return XHTMLImporter.convert(xhtml, "", wordMLPackage);
 	}
 
 	private List<Object> fromXHTML(String content) throws Docx4JException {

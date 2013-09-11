@@ -68,9 +68,8 @@ public class NumberingTest {
 	}
 
 	private List<Object> convert(String xhtml, FormattingOption paragraphFormattingOption) throws Docx4JException {
-		XHTMLImporter XHTMLImporter = new XHTMLImporter(wordMLPackage);				
 		XHTMLImporter.setParagraphFormatting(paragraphFormattingOption);
-		return XHTMLImporter.convert(xhtml, "");
+		return XHTMLImporter.convert(xhtml, "", wordMLPackage);
 	}
 	
 	// ===============================================================================

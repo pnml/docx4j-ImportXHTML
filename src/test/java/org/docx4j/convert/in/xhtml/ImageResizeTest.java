@@ -71,8 +71,7 @@ public class ImageResizeTest{
 	}
 
 	private Inline getInline(String html) throws Exception{
-        XHTMLImporter XHTMLImporter = new XHTMLImporter(wordMLPackage);		
-		List<Object> convert = XHTMLImporter.convert(html, null);
+		List<Object> convert = XHTMLImporter.convert(html, null, wordMLPackage);
 		return ((Inline)((Drawing)((R)((P)convert.get(0)).getContent().get(0)).getContent().get(0)).getAnchorOrInline().get(0));
 	}
 }
