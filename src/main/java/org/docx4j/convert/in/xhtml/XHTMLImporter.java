@@ -36,9 +36,11 @@ import java.io.StringReader;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -46,25 +48,34 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 
+import org.apache.commons.codec.binary.Base64;
 import org.docx4j.wml.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.docx4j.UnitsOfMeasurement;
 import org.docx4j.XmlUtils;
+import org.docx4j.dml.wordprocessingDrawing.Inline;
 import org.docx4j.jaxb.Context;
 import org.docx4j.model.PropertyResolver;
+import org.docx4j.model.fields.FieldRef;
 import org.docx4j.model.properties.Property;
 import org.docx4j.model.properties.PropertyFactory;
 import org.docx4j.model.properties.paragraph.AbstractParagraphProperty;
 import org.docx4j.model.properties.paragraph.Indent;
 import org.docx4j.model.properties.run.AbstractRunProperty;
 import org.docx4j.model.properties.run.FontSize;
+import org.docx4j.model.styles.StyleTree;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.exceptions.InvalidFormatException;
+import org.docx4j.openpackaging.exceptions.InvalidOperationException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
+import org.docx4j.openpackaging.parts.WordprocessingML.BinaryPartAbstractImage;
 import org.docx4j.openpackaging.parts.WordprocessingML.NumberingDefinitionsPart;
 import org.docx4j.openpackaging.parts.WordprocessingML.StyleDefinitionsPart;
 import org.docx4j.openpackaging.parts.relationships.Namespaces;
@@ -77,6 +88,8 @@ import org.docx4j.org.xhtmlrenderer.css.style.CalculatedStyle;
 import org.docx4j.org.xhtmlrenderer.css.style.DerivedValue;
 import org.docx4j.org.xhtmlrenderer.css.style.FSDerivedValue;
 import org.docx4j.org.xhtmlrenderer.css.style.derived.LengthValue;
+import org.docx4j.org.xhtmlrenderer.docx.Docx4JFSImage;
+import org.docx4j.org.xhtmlrenderer.docx.Docx4jUserAgent;
 import org.docx4j.org.xhtmlrenderer.docx.DocxRenderer;
 import org.docx4j.org.xhtmlrenderer.layout.Styleable;
 import org.docx4j.org.xhtmlrenderer.newtable.TableBox;
@@ -89,6 +102,9 @@ import org.docx4j.org.xhtmlrenderer.resource.XMLResource;
 import org.docx4j.wml.CTTblPrBase.TblStyle;
 import org.docx4j.wml.DocDefaults.RPrDefault;
 import org.docx4j.wml.P.Hyperlink;
+import org.docx4j.wml.PPrBase.NumPr;
+import org.docx4j.wml.PPrBase.NumPr.Ilvl;
+import org.docx4j.wml.PPrBase.NumPr.NumId;
 import org.docx4j.wml.PPrBase.PStyle;
 import org.docx4j.wml.TcPrInner.GridSpan;
 import org.docx4j.wml.TcPrInner.VMerge;
@@ -1015,19 +1031,19 @@ public class XHTMLImporter {
 
             		// if the td contains bare text (eg <td>apple</td>)
             		// we need a p for it
-//            		currentP = Context.getWmlObjectFactory().createP();
-//    	            contentContext.getContent().add(currentP);
+//            		currentP = Context.getWmlObjectFactory().createP();                                        	
+//    	            contentContext.getContent().add(currentP);            		
 //		            paraStillEmpty = true;
-
+            		
             		// Do we need a vMerge tag with "restart" attribute?
             		// get cell below (only 1 section supported at present)
             		TcPr tcPr = Context.getWmlObjectFactory().createTcPr();
         			tc.setTcPr(tcPr);
                     if (tcb.getStyle().getRowSpan()> 1) {
-
+            			
             			VMerge vm = Context.getWmlObjectFactory().createTcPrInnerVMerge();
             			vm.setVal("restart");
-            			tcPr.setVMerge(vm);
+            			tcPr.setVMerge(vm);            
                     }
                     // eg <w:tcW w:w="2268" w:type="dxa"/>
                     try {
@@ -1352,11 +1368,9 @@ public class XHTMLImporter {
             }
 
             // new P
-			// we should not automatically close P if we were processing a BlockBox, that contains an image
-			if (!e.getNodeName().equals("img"))
-				attachmentPointP = null;
-
-			if (mustPop) popBlockStack();
+            attachmentPointP = null; 
+            
+            if (mustPop) popBlockStack();
             	
 //            // An empty tc shouldn't make the table disappear!
 //            // TODO - make more elegant
@@ -1651,10 +1665,10 @@ public class XHTMLImporter {
 			UnitsOfMeasurement.twipToEMU(box.getWidth());
 		Long cy = (box.getStyle().valueByName(CSSName.HEIGHT) == IdentValue.AUTO) ? null :
 				UnitsOfMeasurement.twipToEMU(box.getHeight());
-
-		xHTMLImageHandler.addImage(renderer.getDocx4jUserAgent(), wordMLPackage,
+		
+		xHTMLImageHandler.addImage(renderer.getDocx4jUserAgent(), wordMLPackage, 
 				this.getCurrentParagraph(true), box.getElement(), cx, cy);
-
+		
 		paraStillEmpty = false;
 	}
 
