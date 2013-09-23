@@ -29,61 +29,58 @@ public class XHTMLImageHandlerDefault implements XHTMLImageHandler {
 		try {
 			byte[] imageBytes = null;
 
-			if (e.getAttribute("src").startsWith("data:image")) {
-				// Supports 
-				//   data:[<MIME-type>][;charset=<encoding>][;base64],<data>
-				// eg data:image/png;base64,iVBORw0KGgo...
-				// http://www.greywyvern.com/code/php/binary2base64 is a convenient online encoder
-				String base64String = e.getAttribute("src");
-				int commaPos = base64String.indexOf(",");
-				if (commaPos < 6) { // or so ...
-					// .. its broken
-					org.docx4j.wml.R run = Context.getWmlObjectFactory().createR();
-					p.getContent().add(run);
+            imagePart = imagePartCache.get(e.getAttribute("src"));
 
-					org.docx4j.wml.Text text = Context.getWmlObjectFactory().createText();
-					text.setValue("[INVALID DATA URI: " + e.getAttribute("src"));
+            if (imagePart==null) {
 
-					run.getContent().add(text);
+                if (e.getAttribute("src").startsWith("data:image")) {
+                    // Supports
+                    //   data:[<MIME-type>][;charset=<encoding>][;base64],<data>
+                    // eg data:image/png;base64,iVBORw0KGgo...
+                    // http://www.greywyvern.com/code/php/binary2base64 is a convenient online encoder
+                    String base64String = e.getAttribute("src");
+                    int commaPos = base64String.indexOf(",");
+                    if (commaPos < 6) { // or so ...
+                        // .. its broken
+                        org.docx4j.wml.R run = Context.getWmlObjectFactory().createR();
+                        p.getContent().add(run);
 
-					return;
-				}
-				base64String = base64String.substring(commaPos + 1);
-				log.debug(base64String);
-				imageBytes = Base64.decodeBase64(base64String.getBytes("UTF8"));
-			} else {
-				
-				imagePart = imagePartCache.get(e.getAttribute("src"));
-				
-				if (imagePart==null) {
+                        org.docx4j.wml.Text text = Context.getWmlObjectFactory().createText();
+                        text.setValue("[INVALID DATA URI: " + e.getAttribute("src"));
+
+                        run.getContent().add(text);
+
+                        return;
+                    }
+                    base64String = base64String.substring(commaPos + 1);
+                    log.debug(base64String);
+                    imageBytes = Base64.decodeBase64(base64String.getBytes("UTF8"));
+                } else {
+                    String url = e.getAttribute("src");
+                    // Workaround for cannot resolve the URL C:\... with base URL file:/C:/...
+                    // where @src points to a raw file path
+                    if (url.substring(1,2).equals(":")) {
+                        url = "file:/" + url;
+                    }
 					
-					String url = e.getAttribute("src");
-					// Workaround for cannot resolve the URL C:\... with base URL file:/C:/...
-					// where @src points to a raw file path
-					if (url.substring(1,2).equals(":")) {
-						url = "file:/" + url;
-					}
-					
-					Docx4JFSImage docx4JFSImage = docx4jUserAgent.getDocx4JImageResource(url);
-					if (docx4JFSImage != null) {// in case of wrong URL - docx4JFSImage will be null
-						imageBytes = docx4JFSImage.getBytes();
-					}
-				}
-			}
-			if (imageBytes == null
-					&& imagePart==null) {
-				isError = true;
-			} else {
-				
-				if (imagePart==null) {
-					// Its not cached
-					imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageBytes);
-					if (e.getAttribute("src").startsWith("data:image")) {
-						// don't bother caching
-					} else {
-						// cache it
+                    Docx4JFSImage docx4JFSImage = docx4jUserAgent.getDocx4JImageResource(url);
+                    if (docx4JFSImage != null) {// in case of wrong URL - docx4JFSImage will be null
+                        imageBytes = docx4JFSImage.getBytes();
+                    }
+                }
+            }
+            if (imageBytes == null && imagePart==null) {
+                isError = true;
+            } else {
+                if (imagePart == null) {
+                    // Its not cached
+                    imagePart = BinaryPartAbstractImage.createImagePart(wordMLPackage, imageBytes);
+//                    if (e.getAttribute("src").startsWith("data:image")) {
+//                        don't bother caching
+//                    } else {
+//                        cache it
 						imagePartCache.put(e.getAttribute("src"), imagePart);
-					}
+//					}
 				}
 
 
