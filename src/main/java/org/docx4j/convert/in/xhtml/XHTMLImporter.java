@@ -49,6 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.xml.bind.JAXBElement;
 import javax.xml.transform.Source;
 
+import org.apache.commons.lang.StringUtils;
 import org.docx4j.UnitsOfMeasurement;
 import org.docx4j.XmlUtils;
 import org.docx4j.jaxb.Context;
@@ -1039,9 +1040,11 @@ public class XHTMLImporter {
 		            	addImage(blockBox);
                 } else {
                     if ( ! isEmptyBox){
+
                         // Paragraph processing
                         P currentP = this.getCurrentParagraph(true);
                         currentP.setPPr(this.getPPr(blockBox, cssMap));
+
                     }
 	            }
         	}
@@ -1150,8 +1153,8 @@ public class XHTMLImporter {
     private boolean isEmpty(AnonymousBlockBox box) {
         boolean isEmptyBox = true;
         for (Object child : box.getInlineContent()) {
-            if (( ! (child instanceof InlineBox)) ||
-                    ( ! ((InlineBox)child).getText().replace("\n", " ").replace("\t", " ").trim().equals(""))) {
+            if (!(child instanceof InlineBox) ||
+                StringUtils.isNotBlank(((InlineBox) child).getText())) {
                 isEmptyBox = false;
                 break;
             }
@@ -1713,7 +1716,7 @@ public class XHTMLImporter {
 		
 	    markuprange = Context.getWmlObjectFactory().createCTMarkupRange(); 
 	    JAXBElement<org.docx4j.wml.CTMarkupRange> markuprangeWrapped = Context.getWmlObjectFactory().createPBookmarkEnd(markuprange); 
-	        markuprange.setId(BigInteger.valueOf(bookmarkId.getAndIncrement()));
+	        markuprange.setId( BigInteger.valueOf(bookmarkId.getAndIncrement() ) );
 	}
 	
 	private AtomicInteger bookmarkId = new AtomicInteger();	
