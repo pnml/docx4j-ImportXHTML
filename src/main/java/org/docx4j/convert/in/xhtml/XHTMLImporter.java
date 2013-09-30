@@ -506,7 +506,7 @@ public class XHTMLImporter {
         
         return importer.imports.getContent();    	
     }
-    
+
     /**
      * @param reader
      * @param baseUrl
@@ -741,6 +741,11 @@ public class XHTMLImporter {
     	boolean mustPop = false;
     	
         log.debug(box.getClass().getName() );
+
+        boolean isEmptyBox = false;
+        if (box instanceof AnonymousBlockBox)
+            isEmptyBox = isEmpty((AnonymousBlockBox)box);
+
         if (box instanceof BlockBox) {
         	        	
             BlockBox blockBox = ((BlockBox)box);
@@ -1032,18 +1037,18 @@ public class XHTMLImporter {
             		
             	} else if  (e.getNodeName().equals("img")) {
 		            	addImage(blockBox);
-	            } else {
-	            	
-	            	// Paragraph processing
-	            	P currentP = this.getCurrentParagraph(true);
-	                currentP.setPPr(this.getPPr(blockBox, cssMap));
-	                
+                } else {
+                    if ( ! isEmptyBox){
+                        // Paragraph processing
+                        P currentP = this.getCurrentParagraph(true);
+                        currentP.setPPr(this.getPPr(blockBox, cssMap));
+                    }
 	            }
         	}
             
             // the recursive bit:
-            
-        	
+
+        	if (!isEmptyBox){
             	log.debug("Processing children of " + box.getElement().getNodeName() );
 	            switch (blockBox.getChildrenContentType()) {
 	                case BlockBox.CONTENT_BLOCK:
@@ -1088,7 +1093,8 @@ public class XHTMLImporter {
 	                        
 	                    }
 	                    break;
-	            } 
+	            }
+            }
             
 		    
             log.debug("Done processing children of " + box.getClass().getName() );
@@ -1134,11 +1140,23 @@ public class XHTMLImporter {
 //            }
 //
 //            
-            
+
         } else if (box instanceof AnonymousBlockBox) {
-            log.debug("AnonymousBlockBox");            
+            log.debug("AnonymousBlockBox");
         }
-    
+
+    }
+
+    private boolean isEmpty(AnonymousBlockBox box) {
+        boolean isEmptyBox = true;
+        for (Object child : box.getInlineContent()) {
+            if (( ! (child instanceof InlineBox)) ||
+                    ( ! ((InlineBox)child).getText().replace("\n", " ").replace("\t", " ").trim().equals(""))) {
+                isEmptyBox = false;
+                break;
+            }
+        }
+        return isEmptyBox;
     }
 
     protected PPr getPPr(BlockBox blockBox, Map<String, CSSValue> cssMap) {
@@ -1695,7 +1713,7 @@ public class XHTMLImporter {
 		
 	    markuprange = Context.getWmlObjectFactory().createCTMarkupRange(); 
 	    JAXBElement<org.docx4j.wml.CTMarkupRange> markuprangeWrapped = Context.getWmlObjectFactory().createPBookmarkEnd(markuprange); 
-	        markuprange.setId( BigInteger.valueOf(bookmarkId.getAndIncrement() ) );          		        
+	        markuprange.setId(BigInteger.valueOf(bookmarkId.getAndIncrement()));
 	}
 	
 	private AtomicInteger bookmarkId = new AtomicInteger();	
