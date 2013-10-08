@@ -2269,7 +2269,7 @@ public class XHTMLImporter {
 			String hpl = "<w:hyperlink r:id=\"" + rel.getId() + "\" xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\" " +
             "xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" >" +
             "<w:r>" +
-            "<w:t>" + linkText + "</w:t>" +
+            "<w:t xml:space=\"preserve\">" + linkText + "</w:t>" +
             "</w:r>" +
             "</w:hyperlink>";
 
